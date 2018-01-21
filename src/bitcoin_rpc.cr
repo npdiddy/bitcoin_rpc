@@ -39,6 +39,20 @@ class BitcoinRpc
     return {"error" => response.status_message} unless response.success?
     payload = JSON.parse(response.body).as_h
     return {"error" => payload["error"]} if payload["error"].raw
-    payload["result"].as_h
+    result = payload["result"]
+
+    if result.is_a?(Array(JSON::Any))
+      return result
+    end
+
+    begin
+      result.as_h
+    rescue
+      begin
+        result.as_a
+      rescue
+        raise "There was an error parsing response: #{payload["result"].raw}"
+      end
+    end
   end
 end
